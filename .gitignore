@@ -1,0 +1,10 @@
+node_modules/
+.nyc_output/
+coverage/
+
+frontend/dist/
+backend/target/
+
+*.tgz
+npm-debug.log*
+heapdump-*

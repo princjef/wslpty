@@ -1,0 +1,10 @@
+[package]
+name = "wslpty"
+version = "0.1.0"
+authors = ["Jeff Principe <princjef@gmail.com>"]
+
+[dependencies]
+byteorder = "1"
+bytes = "0.4"
+clap = "2"
+libc = "0.2"

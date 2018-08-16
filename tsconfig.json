@@ -1,0 +1,20 @@
+{
+    "compilerOptions": {
+        "target": "es2017",
+        "module": "commonjs",
+        "declaration": true,
+        "declarationMap": true,
+        "sourceMap": true,
+        "outDir": "frontend/dist",
+        "rootDir": "frontend/src",
+        "strict": true,
+        "noUnusedLocals": true,
+        "moduleResolution": "node",
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "skipLibCheck": true
+    },
+    "include": [
+        "frontend/src"
+    ]
+}
