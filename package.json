@@ -1,6 +1,6 @@
 {
   "name": "wslpty",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Spawn native pseudoterminals for the Windows Subsystem for Linux",
   "main": "frontend/dist/index.js",
   "scripts": {
