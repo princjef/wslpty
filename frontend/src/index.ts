@@ -218,7 +218,8 @@ class Pty extends EventEmitter implements IPty {
         const backendPath = await this._getWslPath(path.join(__dirname, '../../backend/target/release/wslpty'));
         const port = await getPort();
 
-        const args = [backendPath, String(port)];
+        const escapedBackendPath = backendPath.replace(/([\/\\])app\.asar([\/\\])/, '$1app.asar.unpacked$2');
+        const args = [escapedBackendPath, String(port)];
 
         args.push('--cols', String(options.cols));
         args.push('--rows', String(options.rows));
