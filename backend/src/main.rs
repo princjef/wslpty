@@ -87,6 +87,7 @@ fn main() {
 
     let mut write_data_stream = stream.try_clone().expect("Failed to clone stream");
     let mut write_procname_stream = stream.try_clone().expect("Failed to clone stream");
+    let mut write_cwd_stream = stream.try_clone().expect("Failed to clone stream");
 
     let (_, term_fd) = pty::fork(cols, rows, cwd, shell).expect("Couldn't spawn pty");
     let mut pty_reader: File = unsafe { File::from_raw_fd(term_fd) };
@@ -142,6 +143,22 @@ fn main() {
             match get_procname(&mut write_procname_stream, term_fd, &current_name) {
                 Ok(name) => {
                     current_name = name;
+                }
+                Err(e) => {
+                    println!("{:?}", e);
+                }
+            };
+
+            thread::sleep(Duration::from_millis(200));
+        }
+    });
+
+    let cwd_thread = thread::spawn(move || {
+        let mut current_cwd = String::from("");
+        loop {
+            match get_cwd(&mut write_cwd_stream, term_fd, &current_cwd) {
+                Ok(cwd) => {
+                    current_cwd = cwd;
                 }
                 Err(e) => {
                     println!("{:?}", e);
@@ -222,6 +239,7 @@ fn main() {
         pty_to_tcp_thread.join()?;
         tcp_to_pty_thread.join()?;
         procname_thread.join()?;
+        cwd_thread.join()?;
         Ok(())
     };
 
@@ -247,4 +265,18 @@ fn get_procname(
         stream.write_all(&mut buf)?;
     }
     Ok(name)
+}
+
+fn get_cwd(
+    mut stream: &TcpStream,
+    fd: RawFd,
+    current_cwd: &str,
+) -> Result<String, io::Error> {
+    let cwd = pty::cwd(fd)?;
+    if &cwd != current_cwd {
+        let mut buf = BytesMut::with_capacity(INITIAL_CAPACITY);
+        encode(Frame::Cwd(Bytes::from(cwd.clone())), &mut buf)?;
+        stream.write_all(&mut buf)?;
+    }
+    Ok(cwd)
 }

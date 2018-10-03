@@ -55,10 +55,9 @@ export interface IPty extends EventEmitter {
     rows: number;
 
     /**
-     * The starting current working directory of the terminal, if one was
-     * provided.
+     * The current working directory of the terminal.
      */
-    cwd?: string;
+    readonly cwd: string;
 
     /**
      * The name of the current process running in the terminal.
@@ -97,13 +96,13 @@ export interface IPty extends EventEmitter {
 class Pty extends EventEmitter implements IPty {
     cols: number;
     rows: number;
-    cwd?: string;
 
     private _server: net.Server;
     private _socket?: net.Socket;
     private _pendingFrames: Buffer[] = [];
     private _pendingBuffer?: Buffer;
     private _procname?: string;
+    private _cwd?: string;
     private _shell?: string;
     private _pty?: child_process.ChildProcess;
     private _closed: boolean = false;
@@ -112,11 +111,15 @@ class Pty extends EventEmitter implements IPty {
         return this._procname || '';
     }
 
+    get cwd(): string {
+        return this._cwd || '';
+    }
+
     constructor(options: ResolvedOptions) {
         super();
         this.cols = options.cols;
         this.rows = options.rows;
-        this.cwd = options.cwd;
+        this._cwd = options.cwd;
 
         this._server = net.createServer(socket => {
             // Don't allow more than one socket
@@ -149,6 +152,8 @@ class Pty extends EventEmitter implements IPty {
                             case frame.FrameType.Name:
                                 this._procname = f.name;
                                 break;
+                            case frame.FrameType.Cwd:
+                                this._cwd = f.cwd;
                         }
                         if (buf.length - f.size > 0) {
                             this._pendingBuffer = Buffer.alloc(buf.length - f.size);

@@ -17,13 +17,20 @@ export interface NameFrame {
     name: string;
 }
 
+export interface CwdFrame {
+    type: FrameType.Cwd;
+    size: number;
+    cwd: string;
+}
+
 export enum FrameType {
     Data = 0,
     Size = 1,
-    Name = 2
+    Name = 2,
+    Cwd = 3
 }
 
-export type Frame = DataFrame | SizeFrame | NameFrame;
+export type Frame = DataFrame | SizeFrame | NameFrame | CwdFrame;
 
 export function decode(buf: Buffer): Frame | null {
     if (buf.length < 4) {
@@ -56,6 +63,12 @@ export function decode(buf: Buffer): Frame | null {
                 type: FrameType.Name,
                 size: size + 4,
                 name: buf.slice(5, 5 + size - 1).toString('utf8')
+            };
+        case FrameType.Cwd:
+            return {
+                type: FrameType.Cwd,
+                size: size + 4,
+                cwd: buf.slice(5, 5 + size - 1).toString('utf8')
             };
         default:
             throw new Error(`Unknown frame type: ${type}`);

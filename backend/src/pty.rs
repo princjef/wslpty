@@ -1,6 +1,6 @@
 use std::env;
 use std::ffi::CString;
-use std::fs::File;
+use std::fs::{read_link, File};
 use std::io;
 use std::io::Read;
 use std::os::raw::{c_char, c_int};
@@ -105,9 +105,7 @@ pub fn fork(
             }
             Err(io::Error::last_os_error())
         }
-        pid => {
-            Ok((pid, master))
-        }
+        pid => Ok((pid, master)),
     }
 }
 
@@ -143,6 +141,22 @@ pub fn procname(fd: RawFd) -> Result<String, io::Error> {
                 }
 
                 String::from_utf8(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
+            }
+        }
+    }
+}
+
+pub fn cwd(fd: RawFd) -> Result<String, io::Error> {
+    unsafe {
+        match libc::tcgetpgrp(fd) {
+            -1 => Err(io::Error::last_os_error()),
+            pid => {
+                let path = format!("/proc/{}/cwd", pid);
+                let link_path = read_link(path)?;
+                link_path
+                    .into_os_string()
+                    .into_string()
+                    .map_err(|_| io::Error::new(io::ErrorKind::InvalidData, "OS string path could not be converted to UTF-8"))
             }
         }
     }
