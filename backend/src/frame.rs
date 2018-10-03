@@ -7,12 +7,14 @@ use bytes::{BufMut, Bytes, BytesMut};
 const DATA_FRAME_TYPE: u8 = 0;
 const SIZE_FRAME_TYPE: u8 = 1;
 const NAME_FRAME_TYPE: u8 = 2;
+const CWD_FRAME_TYPE: u8 = 3;
 
 #[derive(Debug)]
 pub enum Frame {
     Data(Bytes),
     Size(u16, u16),
     Name(Bytes),
+    Cwd(Bytes),
 }
 
 pub fn encode(frame: Frame, buf: &mut BytesMut) -> Result<(), io::Error> {
@@ -34,6 +36,12 @@ pub fn encode(frame: Frame, buf: &mut BytesMut) -> Result<(), io::Error> {
             buf.reserve(5 + bytes.len());
             buf.put_u32_be(1 + bytes.len() as u32);
             buf.put_u8(NAME_FRAME_TYPE);
+            buf.put(bytes);
+        }
+        Frame::Cwd(bytes) => {
+            buf.reserve(5 + bytes.len());
+            buf.put_u32_be(1 + bytes.len() as u32);
+            buf.put_u8(CWD_FRAME_TYPE);
             buf.put(bytes);
         }
     };
