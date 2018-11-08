@@ -2,6 +2,7 @@ import * as net from 'net';
 import * as path from 'path';
 import * as child_process from 'child_process';
 import { EventEmitter } from 'events';
+import { StringDecoder } from 'string_decoder';
 import * as getPort from 'get-port';
 
 import * as frame from './frame';
@@ -132,6 +133,7 @@ class Pty extends EventEmitter implements IPty {
             // Don't batch up tcp writes
             this._socket.setNoDelay(true);
 
+            const decoder = new StringDecoder('utf8');
             this._socket.on('data', data => {
                 // TODO: this results in more data copies than needed
                 let buf = this._pendingBuffer
@@ -144,7 +146,7 @@ class Pty extends EventEmitter implements IPty {
                     if (f) {
                         switch (f.type) {
                             case frame.FrameType.Data:
-                                this.emit('data', f.data);
+                                this.emit('data', decoder.write(f.data));
                                 break;
                             case frame.FrameType.Size:
                                 // The backend can't send size frames
