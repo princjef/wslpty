@@ -1,7 +1,7 @@
 export interface DataFrame {
     type: FrameType.Data;
     size: number;
-    data: string;
+    data: Buffer;
 }
 
 export interface SizeFrame {
@@ -49,7 +49,7 @@ export function decode(buf: Buffer): Frame | null {
             return {
                 type: FrameType.Data,
                 size: size + 4,
-                data: buf.slice(5, 5 + size - 1).toString('utf8')
+                data: buf.slice(5, 5 + size - 1)
             };
         case FrameType.Size:
             return {
