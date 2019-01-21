@@ -131,19 +131,35 @@ pub fn procname(fd: RawFd) -> Result<String, io::Error> {
             -1 => Err(io::Error::last_os_error()),
             pid => {
                 let path = format!("/proc/{}/cmdline", pid);
-                let mut path_buf = PathBuf::new();
-                path_buf.push(path);
-                let mut file = File::open(path_buf)?;
-                let mut buf = Vec::new();
-                file.read_to_end(&mut buf)?;
-                if let Some(pos) = buf.iter().position(|&r| r == 0) {
-                    buf.truncate(pos)
+                let cmdline = read_file(path, 0)?;
+                // On newer versions of Windows, cmdline can end up holding a
+                // number instead of the process name when the active process is
+                // the original shell we launched. In this case, we fetch the
+                // value of comm instead, because it holds the executable of the
+                // main process.
+                match cmdline.parse::<u32>() {
+                    Ok(_) => {
+                        let path = format!("/proc/{}/comm", pid);
+                        read_file(path, 0x0a)
+                    }
+                    Err(_) => Ok(cmdline),
                 }
-
-                String::from_utf8(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
             }
         }
     }
+}
+
+fn read_file(path: String, delimiter: u8) -> Result<String, io::Error> {
+    let mut path_buf = PathBuf::new();
+    path_buf.push(path);
+    let mut file = File::open(path_buf)?;
+    let mut buf = Vec::new();
+    file.read_to_end(&mut buf)?;
+    if let Some(pos) = buf.iter().position(|&r| r == delimiter) {
+        buf.truncate(pos)
+    }
+
+    String::from_utf8(buf).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
 }
 
 pub fn cwd(fd: RawFd) -> Result<String, io::Error> {
@@ -153,10 +169,12 @@ pub fn cwd(fd: RawFd) -> Result<String, io::Error> {
             pid => {
                 let path = format!("/proc/{}/cwd", pid);
                 let link_path = read_link(path)?;
-                link_path
-                    .into_os_string()
-                    .into_string()
-                    .map_err(|_| io::Error::new(io::ErrorKind::InvalidData, "OS string path could not be converted to UTF-8"))
+                link_path.into_os_string().into_string().map_err(|_| {
+                    io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        "OS string path could not be converted to UTF-8",
+                    )
+                })
             }
         }
     }
