@@ -25,15 +25,15 @@
   "author": "Jeff Principe <princjef@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "get-port": "^3.2.0"
+    "get-port": "^4.1.0"
   },
   "devDependencies": {
-    "@types/get-port": "^4.0.0",
+    "@types/get-port": "^4.0.1",
     "@types/node": "^6.0.112",
-    "rimraf": "^2.6.2",
-    "tslint": "^5.11.0",
-    "tslint-config-standard": "^7.0.0",
-    "typescript": "^3.0.1"
+    "rimraf": "^2.6.3",
+    "tslint": "^5.12.1",
+    "tslint-config-standard": "^8.0.1",
+    "typescript": "^3.2.4"
   },
   "files": [
     "backend/target/release/wslpty",

@@ -94,6 +94,9 @@ the design and implementation of this package, but come with some limitations:
       tabs) that many people desire in terminals
  * [node-pty][] - creates a pty in Linux/MacOS/Windows in Node.js
     * Uses winpty to create terminals in Windows, with all of its limitations
+    * Starting from 0.8.0, the new ConPTY Windows interface is supported, but it
+      only works for newer versions of Windows and still does not expose process
+      name properly
 
 This package combines the Node.js interface of [node-pty][] (and some of its
 backend pseudoterminal code) with the socket-based communication pattern of
